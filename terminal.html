@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ALEXDOS</title>
+    <!-- Include jQuery and jQuery Terminal libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.terminal/js/jquery.terminal.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.terminal/css/jquery.terminal.min.css"/>
+    <style>
+        /* CSS for the terminal's appearance */
+        body {
+            background-color: #000;
+            overflow: hidden; /* Hide body scrollbar */
+        }
+        .terminal {
+            --background: #000;
+            --color: #0F0;
+            --caret-color: #0F0;
+            --font-size: 24px;
+            --font-family: monospace;
+            width: 100vw;
+            height: 100vh;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <script src="js/backend.js"></script>
+    <script src="js/programs.js"></script>
+    <script>
+        // main/dos script
+        $(function() {
+            var alexdos_art = `
+             __  __ ___ __  __ ____   ____  ___  ____ 
+Use code with caution.
+
+| \/ | | \/ | | | |/ _ \| |
+| |\/| | | |\/| | _ | | | | () | | |
+|| |||| ||| || |/|| |
+`;
+// Combine backend commands and program commands
+// The commands object is defined in backend.js
+var allCommands = { ...backendCommands, ...programCommands };
+('body').terminal(allCommands, { greetings: alexdos_art + `\n\nALEXDOS is ready. Type HELP for a list of commands.\n`, name: 'ALEXDOS', prompt: 'C:\>', onInit: function(term) { term.resize(); (window).on('resize', function() {
+term.resize();
+});
+}
+});
+});
