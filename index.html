@@ -1,50 +1,450 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ALEXDOS</title>
-    <!-- Include jQuery and jQuery Terminal libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery.terminal/js/jquery.terminal.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.terminal/css/jquery.terminal.min.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Terminal</title>
     <style>
-        /* CSS for the terminal's appearance */
+        /* Embed a custom pixel font.
+           Replace 'PixelFont' with your font's name and 'fonts/pixel-font.woff2'
+           with the correct path to your font file.
+        */
+        @font-face {
+            font-family: 'PixelFont';
+            src: url('fonts/pixel-font.woff2') format('woff2');
+        }
+
         body {
             background-color: #000;
-            overflow: hidden; /* Hide body scrollbar */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
-        .terminal {
-            --background: #000;
-            --color: #0F0;
-            --caret-color: #0F0;
-            --font-size: 24px;
-            --font-family: monospace;
+
+        .terminal-content {
             width: 100vw;
             height: 100vh;
-            box-sizing: border-box;
+            background-color: #000;
+            color: #0f0;
+            font-family: 'PixelFont', 'Courier New', Courier, monospace;
+            font-size: 1.5em;
             padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.2;
+            letter-spacing: 0.05em;
+        }
+
+        /* Customize the scrollbar appearance */
+        .terminal-content::-webkit-scrollbar {
+            width: 10px;
+        }
+        .terminal-content::-webkit-scrollbar-track {
+            background: #000;
+        }
+        .terminal-content::-webkit-scrollbar-thumb {
+            background-color: #0f0;
+            border: 2px solid #000;
+            border-radius: 5px;
+        }
+
+        .blinking-cursor {
+            animation: blink-animation 1s steps(1, start) infinite;
+        }
+        @keyframes blink-animation {
+            to {
+                visibility: hidden;
+            }
+        }
+        .script-text {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <script src="js/backend.js"></script>
-    <script src="js/programs.js"></script>
-    <script>
-        // main/dos script
-        $(function() {
-            var alexdos_art = `
-             __  __ ___ __  __ ____   ____  ___  ____ 
-Use code with caution.
+    <div class="terminal-content" id="terminal-content">
+        <span class="blinking-cursor">_</span>
+    </div>
 
-| \/ | | \/ | | | |/ _ \| |
-| |\/| | | |\/| | _ | | | | () | | |
-|| |||| ||| || |/|| |
-`;
-// Combine backend commands and program commands
-// The commands object is defined in backend.js
-var allCommands = { ...backendCommands, ...programCommands };
-('body').terminal(allCommands, { greetings: alexdos_art + `\n\nALEXDOS is ready. Type HELP for a list of commands.\n`, name: 'ALEXDOS', prompt: 'C:\>', onInit: function(term) { term.resize(); (window).on('resize', function() {
-term.resize();
-});
+    <!-- Edit this hidden text to change the typed-out content -->
+    <textarea id="script-text" class="script-text">
+class ComplexNumber {
+    constructor(real = 0, imaginary = 0) {
+        this.real = real;
+        this.imaginary = imaginary;
+    }
+
+    add(other) {
+        return new ComplexNumber(this.real + other.real, this.imaginary + other.imaginary);
+    }
+
+    multiply(other) {
+        return new ComplexNumber(
+            this.real * other.real - this.imaginary * other.imaginary,
+            this.real * other.imaginary + this.imaginary * other.real
+        );
+    }
+
+    magnitudeSquared() {
+        return this.real * this.real + this.imaginary * this.imaginary;
+    }
 }
+
+class Mandelbrot {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.width = this.canvas.width;
+        this.height = this.canvas.height;
+        this.maxIterations = 100;
+        this.escapeRadius = 2;
+        
+        // Initial view
+        this.view = {
+            xMin: -2.5,
+            xMax: 1.5,
+            yMin: -2,
+            yMax: 2
+        };
+
+        this.isZooming = false;
+        this.zoomStartX = 0;
+        this.zoomStartY = 0;
+
+        this.setupEventListeners();
+        this.render();
+    }
+
+    setupEventListeners() {
+        this.canvas.addEventListener('mousedown', (e) => this.startZoom(e));
+        this.canvas.addEventListener('mouseup', (e) => this.endZoom(e));
+    }
+
+    startZoom(e) {
+        this.isZooming = true;
+        const rect = this.canvas.getBoundingClientRect();
+        this.zoomStartX = e.clientX - rect.left;
+        this.zoomStartY = e.clientY - rect.top;
+    }
+
+    endZoom(e) {
+        if (!this.isZooming) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const zoomEndX = e.clientX - rect.left;
+        const zoomEndY = e.clientY - rect.top;
+        this.isZooming = false;
+
+        const x1 = Math.min(this.zoomStartX, zoomEndX);
+        const x2 = Math.max(this.zoomStartX, zoomEndX);
+        const y1 = Math.min(this.zoomStartY, zoomEndY);
+        const y2 = Math.max(this.zoomStartY, zoomEndY);
+
+        if (x2 - x1 < 10 || y2 - y1 < 10) return; // Ignore small clicks
+
+        const oldXRange = this.view.xMax - this.view.xMin;
+        const oldYRange = this.view.yMax - this.view.yMin;
+
+        const newXMin = this.view.xMin + (x1 / this.width) * oldXRange;
+        const newXMax = this.view.xMin + (x2 / this.width) * oldXRange;
+        const newYMin = this.view.yMin + (y1 / this.height) * oldYRange;
+        const newYMax = this.view.yMin + (y2 / this.height) * oldYRange;
+
+        this.view = { xMin: newXMin, xMax: newXMax, yMin: newYMin, yMax: newYMax };
+
+        this.render();
+    }
+
+    getMandelbrotColor(c) {
+        let z = new ComplexNumber(0, 0);
+        let n = 0;
+
+        while (z.magnitudeSquared() <= this.escapeRadius * this.escapeRadius && n < this.maxIterations) {
+            z = z.multiply(z).add(c);
+            n++;
+        }
+
+        if (n === this.maxIterations) {
+            return { r: 0, g: 0, b: 0 }; // Inside Mandelbrot set, black
+        } else {
+            // Smooth coloring algorithm for outside points
+            const log_zn = Math.log(Math.sqrt(z.magnitudeSquared()));
+            const nu = Math.log(log_zn / Math.log(2)) / Math.log(2);
+            const n_f = n + 1 - nu;
+
+            const color1 = this.getColor(n_f);
+            const color2 = this.getColor(n_f + 1);
+
+            const t = n_f % 1;
+            const r = Math.floor((1 - t) * color1.r + t * color2.r);
+            const g = Math.floor((1 - t) * color1.g + t * color2.g);
+            const b = Math.floor((1 - t) * color1.b + t * color2.b);
+
+            return { r, g, b };
+        }
+    }
+
+    getColor(n) {
+        const h = (n / 30) % 1; // Hue varies with iteration count
+        const s = 1;
+        const v = (n < this.maxIterations) ? 1 : 0;
+
+        const c = v * s;
+        const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+        const m = v - c;
+
+        let r = 0, g = 0, b = 0;
+        if (h >= 0 && h < 1 / 6) { [r, g, b] = [c, x, 0]; }
+        else if (h >= 1 / 6 && h < 2 / 6) { [r, g, b] = [x, c, 0]; }
+        else if (h >= 2 / 6 && h < 3 / 6) { [r, g, b] = [0, c, x]; }
+        else if (h >= 3 / 6 && h < 4 / 6) { [r, g, b] = [0, x, c]; }
+        else if (h >= 4 / 6 && h < 5 / 6) { [r, g, b] = [x, 0, c]; }
+        else { [r, g, b] = [c, 0, x]; }
+
+        return {
+            r: Math.floor((r + m) * 255),
+            g: Math.floor((g + m) * 255),
+            b: Math.floor((b + m) * 255)
+        };
+    }
+
+    render() {
+        console.log("Rendering Mandelbrot set...");
+        const imageData = this.ctx.createImageData(this.width, this.height);
+        const data = imageData.data;
+
+        const xRange = this.view.xMax - this.view.xMin;
+        const yRange = this.view.yMax - this.view.yMin;
+
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                const real = this.view.xMin + (x / this.width) * xRange;
+                const imaginary = this.view.yMin + (y / this.height) * yRange;
+                const c = new ComplexNumber(real, imaginary);
+
+                const color = this.getMandelbrotColor(c);
+                const index = (y * this.width + x) * 4;
+
+                data[index] = color.r;
+                data[index + 1] = color.g;
+                data[index + 2] = color.b;
+                data[index + 3] = 255; // Alpha
+            }
+        }
+        this.ctx.putImageData(imageData, 0, 0);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Create a canvas element and add it to the body
+    const canvas = document.createElement('canvas');
+    canvas.id = 'mandelbrotCanvas';
+    canvas.width = 800;
+    canvas.height = 800;
+    document.body.appendChild(canvas);
+
+    const info = document.createElement('p');
+    info.textContent = 'Click and drag a box to zoom in!';
+    document.body.appendChild(info);
+
+    // Initialize the Mandelbrot generator
+    new Mandelbrot('mandelbrotCanvas');
 });
+
+
+class MazeGenerator {
+    constructor(canvasId, width, height, cellSize = 10) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.width = width;
+        this.height = height;
+        this.cellSize = cellSize;
+        this.grid = [];
+        this.stack = [];
+        
+        this.initGrid();
+        this.generateMaze();
+    }
+
+    initGrid() {
+        this.canvas.width = this.width * this.cellSize;
+        this.canvas.height = this.height * this.cellSize;
+        for (let y = 0; y < this.height; y++) {
+            this.grid[y] = [];
+            for (let x = 0; x < this.width; x++) {
+                this.grid[y][x] = {
+                    x: x,
+                    y: y,
+                    visited: false,
+                    walls: {
+                        top: true,
+                        right: true,
+                        bottom: true,
+                        left: true
+                    }
+                };
+            }
+        }
+    }
+
+    generateMaze() {
+        // Start at a random cell
+        let startX = Math.floor(Math.random() * this.width);
+        let startY = Math.floor(Math.random() * this.height);
+        let current = this.grid[startY][startX];
+        current.visited = true;
+        this.stack.push(current);
+        
+        const drawLoop = () => {
+            if (this.stack.length > 0) {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.drawGrid();
+
+                current = this.stack[this.stack.length - 1];
+                let next = this.getRandomNeighbor(current);
+
+                if (next) {
+                    next.visited = true;
+                    this.stack.push(next);
+                    this.removeWalls(current, next);
+                } else {
+                    this.stack.pop();
+                }
+
+                requestAnimationFrame(drawLoop);
+            }
+        };
+        requestAnimationFrame(drawLoop);
+    }
+
+    getRandomNeighbor(cell) {
+        const neighbors = [];
+        const { x, y } = cell;
+
+        const checkNeighbor = (nx, ny) => {
+            if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+                const neighbor = this.grid[ny][nx];
+                if (!neighbor.visited) {
+                    neighbors.push(neighbor);
+                }
+            }
+        };
+
+        checkNeighbor(x, y - 1); // Top
+        checkNeighbor(x + 1, y); // Right
+        checkNeighbor(x, y + 1); // Bottom
+        checkNeighbor(x - 1, y); // Left
+
+        if (neighbors.length > 0) {
+            const randomIndex = Math.floor(Math.random() * neighbors.length);
+            return neighbors[randomIndex];
+        }
+        return null;
+    }
+
+    removeWalls(cell1, cell2) {
+        const x = cell1.x - cell2.x;
+        if (x === 1) { // Left
+            cell1.walls.left = false;
+            cell2.walls.right = false;
+        } else if (x === -1) { // Right
+            cell1.walls.right = false;
+            cell2.walls.left = false;
+        }
+
+        const y = cell1.y - cell2.y;
+        if (y === 1) { // Top
+            cell1.walls.top = false;
+            cell2.walls.bottom = false;
+        } else if (y === -1) { // Bottom
+            cell1.walls.bottom = false;
+            cell2.walls.top = false;
+        }
+    }
+
+    drawGrid() {
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = '#000';
+        this.ctx.lineWidth = 2;
+
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                const cell = this.grid[y][x];
+                const cx = x * this.cellSize;
+                const cy = y * this.cellSize;
+
+                if (cell.walls.top) {
+                    this.ctx.moveTo(cx, cy);
+                    this.ctx.lineTo(cx + this.cellSize, cy);
+                }
+                if (cell.walls.right) {
+                    this.ctx.moveTo(cx + this.cellSize, cy);
+                    this.ctx.lineTo(cx + this.cellSize, cy + this.cellSize);
+                }
+                if (cell.walls.bottom) {
+                    this.ctx.moveTo(cx + this.cellSize, cy + this.cellSize);
+                    this.ctx.lineTo(cx, cy + this.cellSize);
+                }
+                if (cell.walls.left) {
+                    this.ctx.moveTo(cx, cy + this.cellSize);
+                    this.ctx.lineTo(cx, cy);
+                }
+            }
+        }
+        this.ctx.stroke();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    canvas.id = 'mazeCanvas';
+    document.body.appendChild(canvas);
+
+    const info = document.createElement('p');
+    info.textContent = 'This script is generating a maze using a recursive backtracking algorithm!';
+    document.body.appendChild(info);
+
+    // Initialize the maze generator
+    new MazeGenerator('mazeCanvas', 50, 50, 15);
 });
+
+
+    </textarea>
+
+    <script>
+        const terminalContent = document.getElementById('terminal-content');
+        const scriptElement = document.getElementById('script-text');
+        let codeLines = scriptElement.value.trim().split('\n');
+
+        let currentCodeIndex = 0;
+        let charIndex = 0;
+
+        document.addEventListener('keydown', function() {
+            if (terminalContent.querySelector('.blinking-cursor')) {
+                terminalContent.innerHTML = '';
+            }
+
+            if (currentCodeIndex < codeLines.length) {
+                const currentLine = codeLines[currentCodeIndex];
+                if (charIndex < currentLine.length) {
+                    let charsToAdd = Math.min(Math.floor(Math.random() * 5) + 1, currentLine.length - charIndex);
+                    const newText = currentLine.substring(charIndex, charIndex + charsToAdd);
+                    terminalContent.textContent += newText;
+                    charIndex += charsToAdd;
+                } else {
+                    terminalContent.innerHTML += "\n";
+                    currentCodeIndex++;
+                    charIndex = 0;
+                }
+            } else {
+                currentCodeIndex = 0;
+                charIndex = 0;
+            }
+            
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+        });
+    </script>
+</body>
+</html>
